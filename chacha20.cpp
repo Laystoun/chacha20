@@ -13,7 +13,7 @@ void ChaCha20::init(uint8_t key[32], uint8_t nonce[12]) {
     state[12] = 0;
 
     for (int i = 0; i < 3; i++)
-        state[i] = load32le(&nonce[i * 4]);
+        state[i + 13] = load32le(&nonce[i * 4]);
 }
 
 uint32_t ChaCha20::load32le(uint8_t* key) {
@@ -34,4 +34,28 @@ void ChaCha20::quarterRound(uint32_t& a, uint32_t& b, uint32_t& c, uint32_t& d) 
     c += d; b ^= c; b = rot32l(b, 12);
     a += b; d ^= a; d = rot32l(d, 8);
     c += d; b ^= c; b = rot32l(b, 7);
+}
+
+void ChaCha20::quarterCore(uint32_t* output) {
+    uint32_t x32[16];
+
+    for (int i = 0; i < 16; i++) {
+        x32[i] = state[i];
+    }
+
+    for (int i = 0; i < 10; i++) {
+        quarterRound(x32[0], x32[4], x32[8], x32[12]);
+        quarterRound(x32[1], x32[5], x32[9], x32[13]);
+        quarterRound(x32[2], x32[6], x32[10], x32[14]);
+        quarterRound(x32[3], x32[7], x32[11], x32[15]);
+    
+        quarterRound(x32[0], x32[5], x32[10], x32[15]);
+        quarterRound(x32[1], x32[6], x32[11], x32[12]);
+        quarterRound(x32[2], x32[7], x32[8], x32[13]);
+        quarterRound(x32[3], x32[4], x32[9], x32[14]);
+    }
+
+    for (int i = 0; i < 16; i++) {
+        output[i] = x32[i] + state[i];
+    }
 }
