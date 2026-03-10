@@ -59,3 +59,18 @@ void ChaCha20::quarterCore(uint32_t* output) {
         output[i] = x32[i] + state[i];
     }
 }
+
+void ChaCha20::crypto(uint8_t* input, int len) {
+    uint32_t keyStream[16];
+    uint8_t* keyStreamBytes = reinterpret_cast<uint8_t*>(keyStream);
+
+    for (int i = 0; i < len; i += 64) {
+        quarterCore(keyStream);
+
+        for (int j = 0; j < 64 && len > (i + j); j++) {
+            input[i + j] = input[i + j] ^ keyStreamBytes[j];
+        }
+
+        state[12]++;
+    }
+}
