@@ -8,14 +8,12 @@ template<bool with_logs>
 void encrypt_file(ChaCha20& ch) {
     std::cout << "enter path #: ";
     std::string path;
-    std::cin >> path;
+    std::getline(std::cin, path);
 
     std::ifstream in { path, std::ios::binary };
     std::ofstream out (path + ".enc", std::ios::binary );
-    in.seekg(0, std::ios::end);
-    size_t file_size = in.tellg();
-    in.seekg(0, std::ios::beg);
-    std::vector<uint8_t> buffer(256 * 1024 * 1024);
+    
+    std::vector<uint8_t> buffer(1024 * 1024);
     
     double total_bytes_hand;
     std::chrono::duration<double> total_encrypted_time;
@@ -25,6 +23,7 @@ void encrypt_file(ChaCha20& ch) {
     }
     std::chrono::high_resolution_clock::time_point start_encrypted;
 
+    if (!in) std::cout << "File not open" << std::endl;
     while (in.read(reinterpret_cast<char*>(buffer.data()), buffer.size()) || in.gcount() > 0) {
         if constexpr (with_logs) {
             start_encrypted = std::chrono::high_resolution_clock::now();
